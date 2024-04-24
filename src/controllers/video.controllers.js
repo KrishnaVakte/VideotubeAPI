@@ -204,16 +204,16 @@ const getVideoById = asyncHandler(async (req, res) => {
                 }
             }
         },
-        {
-            $project: {
-                _id: 0,
-                likes: 0
-            }
-        }
+        // {
+        //     $project: {
+        //         _id: 0,
+        //         likes: 0
+        //     }
+        // }
     ])
 
     if (!video.length) {
-        throw new ApiError(400,"No video found.")
+        throw new ApiError(400, "No video found.")
     }
 
     await Video.findByIdAndUpdate(videoId, {
@@ -223,18 +223,26 @@ const getVideoById = asyncHandler(async (req, res) => {
     })
 
     await User.findByIdAndUpdate(req.user?._id, {
-        $push: { watchHistory: videoId }
+        $push: {
+            watchHistory: {
+                $each: [{
+                    videoId, date: Date.now(),
+                }],
+                    $sort: { date: 1 }
+            }
+        }
     });
-    
+
 
     return res.status(200).
         json(
-        new ApiResponse(200,video[0],"Video fetched successfully.")
-    )
+            new ApiResponse(200, video[0], "Video fetched successfully.")
+        )
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    const { title, description } = req.body;
     //TODO: update video details like title, description, thumbnail
     const video = await Video.findOne({
         _id: videoId,
@@ -244,7 +252,6 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Unauthorized Access.");
     }
 
-    const { title, description } = req.body;
     if (!title?.trim() ||
         !description?.trim() ||
         !req.file) {
@@ -269,7 +276,7 @@ const updateVideo = asyncHandler(async (req, res) => {
             }
         },
         { new: true }
-    ) 
+    )
 
     if (!updatedVideo) {
         throw new ApiError(500, "Error while updatation.")
@@ -298,7 +305,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     try {
         await Video.findByIdAndDelete(videoId);
         await deleteFromCloudinary(video.thumbnail);
-        await deleteFromCloudinary(video.videoFile,'video');
+        await deleteFromCloudinary(video.videoFile, 'video');
     } catch (error) {
         throw new ApiError(500, "Error while deleting video.");
     }

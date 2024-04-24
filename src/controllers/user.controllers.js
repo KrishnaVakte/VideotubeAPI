@@ -338,23 +338,26 @@ const getChannelProfile = asyncHandler(async (req, res) => {
 
     return res.status(200)
         .json(
-            new ApiResponse(200, channel,"Channel Fetched Successfully.")
+            new ApiResponse(200, channel[0],"Channel Fetched Successfully.")
     )
 })
 
 const getWatchHistory = asyncHandler(async (req, res) => {
-    const user = await User.aggregate([
+    const history = await User.aggregate([
         {
             $match: {
                 _id: new mongoose.Types.ObjectId(req.user._id)
             }
         },
         {
+            $unwind:"$watchHistory"
+        },
+        {
             $lookup: {
                 from: "videos",
-                localField: "watchHistory",
+                localField: "watchHistory.videoId",
                 foreignField: "_id",
-                as: "watchHistory",
+                as: "video",
                 pipeline: [
                     {
                         $lookup: {
@@ -364,7 +367,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                             as: "owner",
                             pipeline: [
                                 {
-                                    $addFields: {
+                                    $project: {
                                         fullname: 1,
                                         username: 1,
                                         avatar: 1
@@ -377,13 +380,46 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                         $addFields: {
                             owner: {
                                 $first: "$owner",
-                            }
+                            },
                         }
                     }
                 ]
             },
+            
+        },
+        {
+            $sort: {
+               "watchHistory.date":-1
+            }
+        },
+        {
+            $project: {
+                video: {
+                    $first:"$video"
+                }
+            }
+        },
+        {
+            $group: {
+                _id: "$video._id",
+                video: { $first: "$video" }
+            }
+        },
+        {
+            $replaceRoot: { newRoot: "$video" }
         }
+        
+        
     ])
+
+    if (!history) {
+        throw new ApiError(400,"Histroy not found.")
+    }
+
+    return res.status(200)
+        .json(
+        new ApiResponse(200,history,"history fetched successfully.")
+    )
 })
 
 export {

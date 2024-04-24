@@ -34,7 +34,7 @@ app.use("/api/v1/like", likeRouter)
 app.use("/api/v1/comment", commentRouter)
 app.use("/api/v1/playlist", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
-app.use(errorHandler);
+// app.use(errorHandler);
 
 
 export { app };

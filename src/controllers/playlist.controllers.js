@@ -49,7 +49,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         throw new ApiError(400,"No user found.")
     }
     
-    const playlists = await Playlist.findOne(
+    const playlists = await Playlist.find(
         {
                 owner: new mongoose.Types.ObjectId(userId),
                 $or:[{isPublished:true}, {owner: req.user?._id}]

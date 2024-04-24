@@ -76,11 +76,12 @@ const getVideoComments = asyncHandler(async (req, res) => {
         },
         {
             $project: {
-                _id: 0,
+                _id: 1,
                 content: 1,
                 commentBy: 1,
                 likesCount: 1,
-                isLiked:1,
+                isLiked: 1, 
+                createdAt:1
             }
         }
     ])
@@ -109,7 +110,7 @@ const addComment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Content is required.")
     }
 
-    const comment = await Comment.create({
+    let comment = await Comment.create({
         content,
         video: videoId,
         commentBy: req.user._id,
@@ -119,8 +120,33 @@ const addComment = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Error while uploading comment.")
     }
 
+    comment = Comment.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(comment._id)
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "commentBy",
+                foreignField: "_id",
+                as: "commentBy",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            fullname: 1,
+                            avatar: 1,
+                        }
+                    }
+                ]
+            }
+        },
+    ])
+
     return res.status(200).json(
-        new ApiResponse(200, comment, "comment added successfully.")
+        new ApiResponse(200, comment[0], "comment added successfully.")
     )
 })
 

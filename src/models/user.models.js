@@ -37,20 +37,19 @@ const userSchema = new mongoose.Schema({
     },
     watchHistory: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Video" 
+            videoId : {type: mongoose.Schema.Types.ObjectId,
+                ref: "Video"
+            },
+            date: {
+                type: Date,
+                default: Date.now()
+            }
         }
     ],
     refreshToken: {
         type: String,
     }
 }, { timestamps: true })
-
-// userSchema.pre("save", async function (next) {
-//     if (!this.isModified(this.password)) return next();
-//     this.password = await bcrypt.hash(this.password, 10)
-//     next();
-// })
 
 userSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();

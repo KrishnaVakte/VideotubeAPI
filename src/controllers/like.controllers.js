@@ -120,15 +120,21 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
-    const  userId  = req.user._id;
+    const userId = req.user._id;
 
-    const likedVideo = await Like.aggregate([
+    let likedVideo = await Like.aggregate([
+        {
+            $match: {
+                    
+                        video: {
+                            $exists: true
+                        }
+
+            }
+        },
         {
             $match: {
                 likedBy: new mongoose.Types.ObjectId(userId),
-                video: {
-                    $exists: true
-                }
             }
         },
         {
@@ -140,7 +146,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                 pipeline: [
                     {
                         $match: {
-                            $or:[{isPublished:true},{owner:new mongoose.Types.ObjectId(userId)}]
+                            $or: [{ isPublished: true }, { owner: new mongoose.Types.ObjectId(userId) }]
                         }
                     },
                     {
@@ -177,20 +183,25 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                 }
             }
         },
-        {
-            $replaceRoot: {
-                newRoot: "$video"
-            }
-        },
+        // {
+        //     $replaceRoot: {
+        //         newRoot: "$video"
+        //     }
+        // },
     ])
 
     if (!likedVideo.length) {
         return res.status(200).json(
-            new ApiResponse(200,[],"No Liked Videos")
+            new ApiResponse(200, [], "No Liked Videos")
         )
     }
+
+    likedVideo = likedVideo.filter((video) => {
+        return video["video"];
+    })
+
     return res.status(200).json(
-        new ApiResponse(200,likedVideo,"Liked Video Fetched Successfully.")
+        new ApiResponse(200, likedVideo, "Liked Video Fetched Successfully.")
     )
 
 })
