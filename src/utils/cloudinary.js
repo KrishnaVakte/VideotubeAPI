@@ -12,13 +12,13 @@ const uploadOnCloudinary = async (localFilePath) => {
         if (!localFilePath) { return null }
          //upload the file on cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: 'auto'
+            resource_type: 'auto',
+            folder: 'videotube'
         })
-        console.log("file has been uploaded successfully ",response.url);
-        fs.unlinkSync(localFilePath)
+        fs.unlinkSync(localFilePath);
         return response;
     } catch (error) {
-        fs.unlinkSync(localFilePath)
+        // fs.unlinkSync(localFilePath)
         console.log("Error during uploading file : ",error.message)
     }
 }
@@ -33,7 +33,7 @@ const deleteFromCloudinary = async (cloudinaryUrl,resource_type='image') => {
         })
         console.log("File has been deleted from cloudinary successfully.")
     } catch (error) {
-        console.log("Error while deleting file :",error.message)
+        console.log("Error while deleting file :", error.message);
     }
 
 }

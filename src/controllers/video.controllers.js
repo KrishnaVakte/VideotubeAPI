@@ -11,11 +11,10 @@ import { User } from "../models/user.models.js";
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    let { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+    let { page = 1, limit = 10, query, sortBy="createdAt", sortType="desc", userId } = req.query
     //TODO: get all videos based on query, sort, pagination
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
-
     const pipeline = [
         {
             $match: {
@@ -61,7 +60,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
     const filteredPipeline = pipeline.filter(Boolean);
 
-    const videos = await Video.aggregatePaginate(filteredPipeline, options);
+    const videos = await Video.aggregate(filteredPipeline);
 
     return res.status(200)
         .json(
