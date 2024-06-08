@@ -4,7 +4,7 @@ import fs from "fs"
 cloudinary.config({ 
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
   api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret: process.env.CLOUDINARY_SECRET_KEY 
+  api_secret: process.env.CLOUDINARY_SECRET_KEY
 });
 
 const uploadOnCloudinary = async (localFilePath) => {
@@ -19,7 +19,7 @@ const uploadOnCloudinary = async (localFilePath) => {
         return response;
     } catch (error) {
         // fs.unlinkSync(localFilePath)
-        console.log("Error during uploading file : ",error.message)
+        console.log("Error during uploading file : ",error)
     }
 }
 
@@ -33,7 +33,7 @@ const deleteFromCloudinary = async (cloudinaryUrl,resource_type='image') => {
         })
         console.log("File has been deleted from cloudinary successfully.")
     } catch (error) {
-        console.log("Error while deleting file :", error.message);
+        console.log("Error while deleting file :", error);
     }
 
 }

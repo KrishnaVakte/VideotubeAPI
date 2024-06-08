@@ -4,6 +4,7 @@ import {
     registerUser,
     loginUser,
     logoutUser,
+    sendotp,
     refreshAccessToken,
     changeCurrentPassword,
     getUserDetails,
@@ -33,6 +34,7 @@ router.post("/register", upload.fields([
 
 router.post("/login", loginUser) //upload.none() required for taking form-data
 router.get("/c/:username", getChannelProfile);
+router.post("/sendotp", sendotp)
  
 //Secured Routes
 router.route("/logout").post(verifyJWT, logoutUser)

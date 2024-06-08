@@ -5,6 +5,8 @@ import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import OTP from "../models/OTP.js";
+import otpGenerator from 'otp-generator'
 
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -27,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // remove password and refresh token field from response
     // check for user creation
     // return res
-    const { fullname, email, username, password } = req.body;
+    const { fullname, email, username, password, otp } = req.body;
 
     if (
         [email, username, fullname, password].some((field) => field?.trim() === "")
@@ -43,6 +45,22 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User already exists.")
     }
 
+    const response = await OTP.findOne({ email }).sort({ createdAt: -1 }).limit(1);
+    console.log(response);
+
+    if (response.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "The otp is not valid",
+        })
+    } else if (otp !== response.otp) {
+        return res.status(400).json({
+            success: false,
+            message: "Otp is not valid",
+        })
+    }
+
+
     const avatarLocalPath = req.files?.avatar[0]?.path
 
     if (!avatarLocalPath) {
@@ -50,7 +68,6 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     let coverImageLocalPath = req.files?.coverImage[0]?.path
-
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
@@ -138,6 +155,45 @@ const logoutUser = asyncHandler(async (req, res) => {
         .clearCookie("refreshToken", options)
         .json(new ApiResponse(200, {}, "User logged out."))
 
+})
+
+const sendotp = asyncHandler(async (req, res) => {
+        const { email } = req.body;
+        console.log(email)
+
+        const checkUserPresent = await User.findOne({ email });
+
+        if (checkUserPresent) {
+           throw new ApiError(401,"User already exists.")
+        }
+
+        var otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+        });
+
+        let result = await OTP.findOne({ otp: otp });
+        console.log("OTP", otp)
+        console.log("Result", result)
+        while (result) {
+            otp = otpGenerator.generate(6, {
+                upperCaseAlphabets: false,
+                lowerCaseAlphabets: false,
+                specialChars: false,
+            });
+            result = await OTP.findOne({ otp });
+        }
+        const otpPayload = new OTP({ email, otp });
+        const otpBody = await otpPayload.save();
+        console.log("otpbody", otpBody);
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            otp,
+           "otp send successfully",
+        ))
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -311,7 +367,7 @@ const getChannelProfile = asyncHandler(async (req, res) => {
                 },
                 isSubscribed: {
                     $cond: {
-                        if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                        if: { $in: [req.user?._id, "$subscribedTo.subscriber"] },
                         then: true,
                         else: false
                     }
@@ -426,6 +482,7 @@ export {
     registerUser,
     loginUser,
     logoutUser,
+    sendotp,
     refreshAccessToken,
     changeCurrentPassword,
     getUserDetails,
@@ -433,5 +490,5 @@ export {
     updateAvatar,
     updateCoverImage,
     getChannelProfile,
-    getWatchHistory
+    getWatchHistory,
 }
