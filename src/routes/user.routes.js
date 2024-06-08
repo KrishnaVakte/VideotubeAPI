@@ -40,7 +40,7 @@ router.post("/sendotp", sendotp)
 router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/refresh-token").post(refreshAccessToken)
 router.route("/change-password").post(verifyJWT, changeCurrentPassword)
-router.route("/current-user").get(verifyJWT, getUserDetails)
+router.route("/current-user").post(verifyJWT, getUserDetails)
 router.route("/update-account").patch(verifyJWT, updateUserDetails)
 
 router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateAvatar)
