@@ -36,5 +36,9 @@ app.use("/api/v1/playlist", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
 // app.use(errorHandler);
 
+app.get('/', (req, res) => {
+    res.send("API Working.. ")
+})
+
 
 export { app };
