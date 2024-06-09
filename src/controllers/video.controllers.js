@@ -21,7 +21,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 owner: userId?.trim() ? new mongoose.Types.ObjectId(userId) : { $exists: true, $ne: null },
                 isPublished: true,
                 title: {
-                    $regex: new RegExp(query?.trim().split('/\s+/').join('|'), 'i')  //
+                    $regex: new RegExp(query?.trim().split('/\s+/').join('|'), 'i')  
                 }
             }
         },
@@ -70,17 +70,17 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description } = req.body
+    const { title, description } = req.body;
     // TODO: get video, upload to cloudinary, create video
     if ([title, description].some((field) => {
         return field?.trim() === "";
     })) {
         throw new ApiError(400, "All fields are required.");
     }
-
+    
     const videoLocalPath = req.files?.videoFile[0]?.path;
     const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
-
+    console.log(videoLocalPath)
     if (!videoLocalPath ||
         !thumbnailLocalPath ||
         !req.files.videoFile[0]?.mimetype.includes('video') ||
@@ -91,6 +91,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     const videoFile = await uploadOnCloudinary(videoLocalPath);
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
+    console.log(videoFile)
 
     if (!videoFile || !thumbnail) {
         throw new ApiError(400, "Error while uploading the file")

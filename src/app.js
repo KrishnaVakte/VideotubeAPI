@@ -1,9 +1,17 @@
 import express, { application } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+// import fileUpload from 'express-fileupload';
 
 const app = express();
 app.use(cookieParser())
+// app.use(
+//     fileUpload({
+//         useTempFiles: true,
+//         tempFileDir: "/tmp",
+//     })
+// )
+ 
 
 app.use(cors({
     origin: [process.env.CORS_ORIGIN, 'http://localhost:5173'],
@@ -24,7 +32,6 @@ import likeRouter from "./routes/like.routes.js"
 import commentRouter from "./routes/comment.routes.js"
 import playlistRouter from "./routes/playlist.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
-import { errorHandler } from './utils/errorHandler.js';
 
 app.use("/api/v1/user", userRouter);
 app.use('/api/v1/video', videoRouter);
@@ -34,7 +41,6 @@ app.use("/api/v1/like", likeRouter)
 app.use("/api/v1/comment", commentRouter)
 app.use("/api/v1/playlist", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
-// app.use(errorHandler);
 
 app.get('/', (req, res) => {
     res.send("API Working.. ")

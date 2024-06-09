@@ -12,7 +12,7 @@ router.use(verifyJWT);
 
 router.route("/").post(createTweet);
 
-router.route("/:username").get(getUserTweets);
+router.route("/:username").post(getUserTweets);
 
 router.route("/:tweetId")
     .patch(updateTweet)
