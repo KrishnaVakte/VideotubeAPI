@@ -44,7 +44,7 @@ router.route("/current-user").post(verifyJWT, getUserDetails)
 router.route("/update-account").patch(verifyJWT, updateUserDetails)
 
 router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateAvatar)
-router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"), updateCoverImage)
+router.route("/cover-image").post(verifyJWT, upload.single("coverImage"), updateCoverImage)
 router.route("/history").post(verifyJWT, getWatchHistory);
 
 
