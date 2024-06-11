@@ -496,7 +496,6 @@ const deleteNotification = asyncHandler(async (req, res) => {
     const { notificationId } = req.params;
     
     const notification = await Notification.findByIdAndDelete(notificationId);
-    console.log(notification)
     if (!notification) {
         throw new ApiError(404, "No notification found")
     }
