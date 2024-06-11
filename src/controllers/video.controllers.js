@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.models.js";
+import { Subscription } from "../models/subscription.models.js";
+import { Notification } from "../models/notification.models.js";
 import {
     uploadOnCloudinary,
     deleteFromCloudinary
@@ -111,6 +113,29 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Something wrong during video creation.")
     }
 
+    try {
+        
+    } catch (error) {
+        
+    }
+
+     // Find all subscribers of the channel
+     
+     // Create notifications for each subscriber
+     try {
+        const subscribers = await Subscription.find({ channel: req.user._id});
+         for (const sub of subscribers) {
+             await Notification.create({
+                 userId: sub.subscriber,
+                 videoTitle: video.title,
+                 channelAvatar: req.user?.avatar,
+                 channelname: req.user?.username
+             });
+         }
+    
+    } catch (error) {
+        console.log('notification not created.')
+    }
     return res.status(200)
         .json(
             new ApiResponse(200, video, "Video uploaded successfully.")

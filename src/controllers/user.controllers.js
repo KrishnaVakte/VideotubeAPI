@@ -5,8 +5,9 @@ import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
-import OTP from "../models/OTP.js";
+import {OTP} from "../models/OTP.js";
 import otpGenerator from 'otp-generator'
+import { Notification } from "../models/notification.models.js";
 
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -66,11 +67,14 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar Image is required.")
     }
-
-    let coverImageLocalPath = req.files?.coverImage[0]?.path
+    let coverImageLocalPath;
+    if(req.files?.coverImage){
+         coverImageLocalPath = req.files?.coverImage[0]?.path
+    }
     const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
+    let coverImage;
+    if(coverImageLocalPath){  coverImage = await uploadOnCloudinary(coverImageLocalPath)
+}
     if (!avatar) {
         throw new ApiError(400, "avatar is required.")
     }
@@ -356,7 +360,7 @@ const getChannelProfile = asyncHandler(async (req, res) => {
                 from: "subscriptions",
                 localField: "_id",
                 foreignField: "subscriber",
-                as: "subscribedTo"
+                as: "subscribedTo",
             }
         },
         {
@@ -369,7 +373,7 @@ const getChannelProfile = asyncHandler(async (req, res) => {
                 },
                 isSubscribed: {
                     $cond: {
-                        if: { $in: [req.user?._id, "$subscribedTo.subscriber"] },
+                        if: { $in: [new mongoose.Types.ObjectId(req.user?._id), "$subscribers.subscriber"] },
                         then: true,
                         else: false
                     }
@@ -480,6 +484,28 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     )
 })
 
+const getUserNotifications = asyncHandler(async (req, res) => {
+    const userId = req.user._id; 
+    const notifications = await Notification.find({ userId })
+    return res.status(200).json(
+        new ApiResponse(200,notifications, "Notifications fetched successfully.") 
+    );
+});
+
+const deleteNotification = asyncHandler(async (req, res) => {
+    const { notificationId } = req.params;
+    
+    const notification = await Notification.findByIdAndDelete(notificationId);
+    console.log(notification)
+    if (!notification) {
+        throw new ApiError(404, "No notification found")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200,notification,"Notification Deleted Successfully.")
+    )
+})
+
 export {
     registerUser,
     loginUser,
@@ -493,4 +519,6 @@ export {
     updateCoverImage,
     getChannelProfile,
     getWatchHistory,
+    getUserNotifications,
+    deleteNotification
 }

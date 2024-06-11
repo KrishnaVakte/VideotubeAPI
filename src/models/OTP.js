@@ -41,5 +41,4 @@ OTPSchema.pre("save", async function (next) {
     next();
 })
 
- const OTP = mongoose.model('OTP', OTPSchema);
-export default OTP;
+ export const OTP = mongoose.model('OTP', OTPSchema);
