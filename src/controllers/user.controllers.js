@@ -21,15 +21,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req, res) => {
-    // get user details from frontend
-    // validation - not empty
-    // check if user already exists: username, email
-    // check for images, check for avatar
-    // upload them to cloudinary, avatar
-    // create user object - create entry in db
-    // remove password and refresh token field from response
-    // check for user creation
-    // return res
+    
     const { fullname, email, username, password, otp } = req.body;
 
     if (
@@ -47,7 +39,6 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const response = await OTP.findOne({ email }).sort({ createdAt: -1 }).limit(1);
-    console.log(response);
 
     if (response.length === 0) {
         return res.status(400).json({
@@ -163,7 +154,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const sendotp = asyncHandler(async (req, res) => {
         const { email } = req.body;
-        console.log(email)
 
         const checkUserPresent = await User.findOne({ email });
 
@@ -178,8 +168,6 @@ const sendotp = asyncHandler(async (req, res) => {
         });
 
         let result = await OTP.findOne({ otp: otp });
-        console.log("OTP", otp)
-        console.log("Result", result)
         while (result) {
             otp = otpGenerator.generate(6, {
                 upperCaseAlphabets: false,
@@ -450,17 +438,23 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             
         },
         {
-            $sort: {
-               "watchHistory.date":-1
+            $match: {
+                "video": { $ne: [] } // Ensure that the 'video' array is not empty
             }
         },
+        // {
+        //     $sort: {
+        //        "watchHistory.date":-1
+        //     }
+        // },
         {
             $project: {
                 video: {
                     $first:"$video"
-                }
+                },
             }
         },
+        
         {
             $group: {
                 _id: "$video._id",
@@ -468,10 +462,10 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             }
         },
         {
-            $replaceRoot: { newRoot: "$video" }
+            $replaceRoot: {
+                newRoot:"$video"
+            }
         }
-        
-        
     ])
 
     if (!history) {
