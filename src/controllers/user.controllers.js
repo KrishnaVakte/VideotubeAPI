@@ -396,7 +396,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     const history = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user._id)
+                _id: new mongoose.Types.ObjectId(req.user?._id)
             }
         },
         {
@@ -438,15 +438,20 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             
         },
         {
+            $addFields: {
+                'video.date':'$watchHistory.date'
+            }
+        },
+        {
+            $sort: {
+                "video.date":-1
+            }
+        },
+        {
             $match: {
                 "video": { $ne: [] } // Ensure that the 'video' array is not empty
             }
         },
-        // {
-        //     $sort: {
-        //        "watchHistory.date":-1
-        //     }
-        // },
         {
             $project: {
                 video: {
@@ -465,7 +470,13 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             $replaceRoot: {
                 newRoot:"$video"
             }
+        },
+        {
+            $sort: {
+                "date":-1
+            }
         }
+        
     ])
 
     if (!history) {
